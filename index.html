@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Game</title>
+    <style>
+        .column {
+            float: left;
+            width: 45;
+            padding-right: 200px;
+        }
+        .button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #000;
+            text-align: center;
+            cursor: pointer;
+        }
+        .canvas-container {
+            clear: both;
+            position: relative;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+       
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+.button.shake {
+    animation: shake 0.5s;
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="column" id="column1"></div>
+    <div class="column" id="column2"></div>
+    <div class="canvas-container">
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+    <script>
+        const column1 = document.getElementById('column1');
+        const column2 = document.getElementById('column2');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let startX, startY, isDrawing = false;
+
+        function getRandomLetters() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const shuffled = letters.split('').sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 20);
+        }
+        
+        let currentUpperButton = null;
+        let currentLowerButton = null;
+
+        function handleUpperButton (button) {
+            // Reset the previous button's color if there is one
+            if (currentUpperButton) {
+                currentUpperButton.style.backgroundColor = '';
+            }
+            // Set the new button's color to green
+            button.style.backgroundColor = 'green';
+            // Update the current button
+            currentUpperButton = button;
+        }
+
+        function handleLowerButton (button) {
+            // The user can only set a lower button if upper button is pressed
+            if(currentUpperButton){
+                // Set the new button's color to green
+                if(button.dataset.id.toLowerCase() === currentUpperButton.dataset.id.toLowerCase()){
+                    button.style.backgroundColor = 'green';
+                    setTimeout(() => { 
+                        button.style.backgroundColor = 'blue';
+                        currentUpperButton.style.backgroundColor = 'blue'; 
+                        currentUpperButton = null;
+                    }, 2000);
+                    
+                }else{
+                    button.style.backgroundColor = 'red';
+                    button.classList.add('shake');
+                    setTimeout(() => { 
+                        button.style.backgroundColor = '';
+                        button.classList.remove('shake');
+                        //currentLowerButton.style.backgroundColor = '';
+                    }, 2000);
+                }
+             
+                // Update the current button
+                currentLowerButton = button;
+
+            }
+            
+            //// Reset the previous button's color if there is one
+            //if (currentLowerButton) {
+            //    
+            //}
+            
+        }
+
+
+        function createButtons() {
+            const upperCaseLetters = getRandomLetters();
+            const lowerCaseLetters = upperCaseLetters.map(letter => letter.toLowerCase()).sort(() => 0.5 - Math.random());
+
+            upperCaseLetters.forEach(letter => {
+                const button = document.createElement('div');
+                button.className = 'button';
+                button.textContent = letter;
+                button.dataset.id = letter;
+
+                button.addEventListener('click', () => {
+                    console.log(`Button ${letter} clicked`);
+                    handleUpperButton (button);
+                    // You can add more functionality here
+                });
+
+                column1.appendChild(button);
+            });
+
+            lowerCaseLetters.forEach(letter => {
+                const button = document.createElement('div');
+                button.className = 'button';
+                button.textContent = letter;
+                button.dataset.id = letter;
+                button.addEventListener('click', () => {
+                    console.log(`Lower Button ${letter} clicked`);
+                    handleLowerButton(button);
+                    // You can add more functionality here
+                });
+                column2.appendChild(button);
+            });
+        }
+
+        createButtons();
+
+        canvas.addEventListener('pointerdown', (e) => {
+            startX = e.clientX;
+            startY = e.clientY;
+            isDrawing = true;
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isDrawing) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(e.clientX, e.clientY);
+            ctx.stroke();
+        });
+
+        canvas.addEventListener('pointerup', () => {
+            isDrawing = false;
+        });
+    </script>
+</body>
+</html>
+
